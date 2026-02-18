@@ -8,6 +8,7 @@ import { fluxStatus, fluxLogs, fluxReconcile } from "./tools/flux.js";
 import { talosNodes, talosLogs } from "./tools/talos.js";
 import { podLogs } from "./tools/kubernetes.js";
 import { helmreleaseDebug } from "./tools/helmrelease.js";
+import { grafanaMetrics } from "./tools/grafana-metrics.js";
 
 const server = new McpServer({
   name: "homelab",
@@ -86,6 +87,17 @@ server.registerTool("helmrelease_debug", {
     show_values: z.boolean().default(false),
   },
 }, helmreleaseDebug);
+
+server.registerTool("grafana_metrics", {
+  description: "Search Prometheus metrics in Mimir: find metric names, label values, or run PromQL queries",
+  inputSchema: {
+    action: z.enum(["search", "label_values", "query"]).describe("Operation to perform"),
+    pattern: z.string().optional().describe("Regex to filter metric names (search action)"),
+    label: z.string().optional().describe("Label name to get values for (label_values action)"),
+    query: z.string().optional().describe("PromQL expression (query action)"),
+    limit: z.number().default(50).describe("Max results to return"),
+  },
+}, grafanaMetrics);
 
 // Start server
 const transport = new StdioServerTransport();
